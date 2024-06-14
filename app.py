@@ -284,7 +284,7 @@ if selected == "Predictions":
                     [[cbd_dist, min_dist_mrt, np.log(floor_area_sqm), lease_remain_years, np.log(storey_median)]])
                 new_sample = scaler_loaded.transform(new_sample[:, :5])
                 new_pred = loaded_model.predict(new_sample)[0]
-                st.write('## :green[Predicted resale price:] ', np.exp(new_pred))
+                st.write('## :green[Predicted resale price:] ', round(np.exp(new_pred), 2))
 
     except Exception as e:
         st.write("Enter the above values to get the predicted resale price of the flat")
