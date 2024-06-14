@@ -50,9 +50,9 @@ if selected == "Predictions":
     st.markdown("# :blue[Predicting Results based on Trained Models]")
     st.markdown("### :orange[Predicting Resale Price (Regression Task) (Accuracy: 87%)]")
 
-    #try:
-    with st.form("form1"):
-        streets = ['ANG MO KIO AVE 4', 'ANG MO KIO AVE 10', 'ANG MO KIO AVE 5',
+    try:
+        with st.form("form1"):
+            streets = ['ANG MO KIO AVE 4', 'ANG MO KIO AVE 10', 'ANG MO KIO AVE 5',
                 'ANG MO KIO AVE 8', 'ANG MO KIO AVE 1', 'ANG MO KIO AVE 3',
                 'ANG MO KIO AVE 6', 'ANG MO KIO ST 52', 'ANG MO KIO ST 21',
                 'ANG MO KIO ST 31', 'BEDOK RESERVOIR RD', 'BEDOK STH RD',
@@ -218,80 +218,73 @@ if selected == "Predictions":
                 'BT BATOK EAST AVE 6', 'BT BATOK WEST AVE 9', 'GEYLANG EAST AVE 2',
                 'MARINE PARADE CTRL', 'CANBERRA WALK', 'WOODLANDS RISE',
                 'TAMPINES ST 61', 'YISHUN ST 43']
-        blocks = []
-        storey_range_options = ['07 TO 09', '10 TO 12', '04 TO 06', '01 TO 03', '13 TO 15',
-                '22 TO 24', '16 TO 18', '19 TO 21', '25 TO 27', '28 TO 30',
-                '34 TO 36', '46 TO 48', '37 TO 39', '40 TO 42', '31 TO 33',
-                '49 TO 51', '43 TO 45']
-        # -----New Data inputs from the user for predicting the resale price-----
-        street_name = st.selectbox("Street Name", options=streets)
-        block = st.text_input("Block Number")
-        floor_area_sqm = st.number_input('Floor Area (Per Square Meter)', min_value=1.0, max_value=500.0)
-        lease_commence_date = st.number_input('Lease Commence Date')
-        storey_range = st.text_input("Storey Range (Format: 'Value1' TO 'Value2')")
+            # -----New Data inputs from the user for predicting the resale price-----
+            street_name = st.selectbox("Street Name", options=streets)
+            block = st.text_input("Block Number")
+            floor_area_sqm = st.number_input('Floor Area (Per Square Meter)', min_value=1.0, max_value=500.0)
+            lease_commence_date = st.number_input('Lease Commence Date')
+            storey_range = st.text_input("Storey Range (Format: 'Value1' TO 'Value2')")
 
-        # -----Submit Button for PREDICT RESALE PRICE-----
-        submit_button = st.form_submit_button(label="PREDICT RESALE PRICE")
+            # -----Submit Button for PREDICT RESALE PRICE-----
+            submit_button = st.form_submit_button(label="PREDICT RESALE PRICE")
 
-        if submit_button is not None:
-            with open(r"model.pkl", 'rb') as file:
-                loaded_model = pickle.load(file)
-            with open(r'scaler.pkl', 'rb') as f:
-                scaler_loaded = pickle.load(f)
+            if submit_button is not None:
+                with open(r"model.pkl", 'rb') as file:
+                    loaded_model = pickle.load(file)
+                with open(r'scaler.pkl', 'rb') as f:
+                    scaler_loaded = pickle.load(f)
 
-            # -----Calculating lease_remain_years using lease_commence_date-----
-            lease_remain_years = 99 - (2023 - lease_commence_date)
+                # -----Calculating lease_remain_years using lease_commence_date-----
+                lease_remain_years = 99 - (2023 - lease_commence_date)
 
-            # -----Calculating median of storey_range to make our calculations quite comfortable-----
-            split_list = re.split(' TO | To | to', storey_range)
-            float_list = [float(i) for i in split_list]
-            storey_median = statistics.median(float_list)
+                # -----Calculating median of storey_range to make our calculations quite comfortable-----
+                split_list = re.split(' TO | To | to', storey_range)
+                float_list = [float(i) for i in split_list]
+                storey_median = statistics.median(float_list)
 
-            # -----Getting the address by joining the block number and the street name-----
-            origin = []
+                # -----Getting the address by joining the block number and the street name-----
+                origin = []
 
-            # -----Getting the address by joining the block number and the street name-----
-            address = block + " " + street_name
-            data = pd.read_csv('df_coordinates.csv')
-            
+                # -----Getting the address by joining the block number and the street name-----
+                address = block + " " + street_name
+                data = pd.read_csv('df_coordinates.csv')
+                
+ 
+
+            # Filter the DataFrame based on the block number and road name
+                filtered_data = data[(data['blk_no'] == block) & (data['road_name'] == street_name)]
 
 
-        # Filter the DataFrame based on the block number and road name
-            filtered_data = data[(data['blk_no'] == block) & (data['road_name'] == street_name)]
-            #st.write(filtered_data)
+            # Get latitude and longitude from the filtered data
+                # latitude = filtered_data.iloc[0]['latitude']
+                # longitude = filtered_data.iloc[0]['longitude']
+                # origin.append((latitude, longitude))
 
-        # Get latitude and longitude from the filtered data
-            # print(filtered_data)
-            # latitude = filtered_data.iloc[0]['latitude']
-            # longitude = filtered_data.iloc[0]['longitude']
-            # origin.append((latitude, longitude))
+                # -----Appending the Latitudes and Longitudes of the MRT Stations-----
+                # Latitudes and Longitudes are been appended in the form of a tuple  to that list
+                mrt_lat = mrt_location['latitude']
+                mrt_long = mrt_location['longitude']
+                list_of_mrt_coordinates = []
+                for lat, long in zip(mrt_lat, mrt_long):
+                    list_of_mrt_coordinates.append((lat, long))
 
-            # -----Appending the Latitudes and Longitudes of the MRT Stations-----
-            # Latitudes and Longitudes are been appended in the form of a tuple  to that list
-            mrt_lat = mrt_location['latitude']
-            mrt_long = mrt_location['longitude']
-            list_of_mrt_coordinates = []
-            for lat, long in zip(mrt_lat, mrt_long):
-                list_of_mrt_coordinates.append((lat, long))
+                # -----Getting distance to nearest MRT Stations (Mass Rapid Transit System)-----
+                list_of_dist_mrt = []
+                for destination in range(0, len(list_of_mrt_coordinates)):
+                    list_of_dist_mrt.append(geodesic(origin, list_of_mrt_coordinates[destination]).meters)
+                shortest = (min(list_of_dist_mrt))
+                min_dist_mrt = shortest
+                list_of_dist_mrt.clear()
 
-            # -----Getting distance to nearest MRT Stations (Mass Rapid Transit System)-----
-            list_of_dist_mrt = []
-            for destination in range(0, len(list_of_mrt_coordinates)):
-                list_of_dist_mrt.append(geodesic(origin, list_of_mrt_coordinates[destination]).meters)
-            shortest = (min(list_of_dist_mrt))
-            min_dist_mrt = shortest
-            list_of_dist_mrt.clear()
+                # -----Getting distance from CDB (Central Business District)-----
+                cbd_dist = geodesic(origin, (1.2830, 103.8513)).meters  # CBD coordinates
 
-            # -----Getting distance from CDB (Central Business District)-----
-            cbd_dist = geodesic(origin, (1.2830, 103.8513)).meters  # CBD coordinates
+                # -----Sending the user enter values for prediction to our model-----
+                new_sample = np.array(
+                    [[cbd_dist, min_dist_mrt, np.log(floor_area_sqm), lease_remain_years, np.log(storey_median)]])
+                new_sample = scaler_loaded.transform(new_sample[:, :5])
+                new_pred = loaded_model.predict(new_sample)[0]
+                st.write('## :green[Predicted resale price:] ', np.exp(new_pred))
 
-            # -----Sending the user enter values for prediction to our model-----
-            new_sample = np.array(
-                [[cbd_dist, min_dist_mrt, np.log(floor_area_sqm), lease_remain_years, np.log(storey_median)]])
-            new_sample = scaler_loaded.transform(new_sample[:, :5])
-            new_pred = loaded_model.predict(new_sample)[0]
-            st.write('## :green[Predicted resale price:]', round(np.exp(new_pred), 2))
-
-    # Exception as e:
-        #st.write("Enter the above values to get the predicted resale price of the flat")
-
+    except Exception as e:
+        st.write("Enter the above values to get the predicted resale price of the flat")
