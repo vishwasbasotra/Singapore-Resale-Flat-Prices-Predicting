@@ -220,9 +220,9 @@ if selected == "Predictions":
                 'TAMPINES ST 61', 'YISHUN ST 43']
             # -----New Data inputs from the user for predicting the resale price-----
             street_name = st.selectbox("Street Name", options=streets)
-            block = st.text_input("Block Number")
+            block = st.text_input("Block Number", value=200)
             floor_area_sqm = st.number_input('Floor Area (Per Square Meter)', min_value=1.0, max_value=500.0)
-            lease_commence_date = st.number_input('Lease Commence Date')
+            lease_commence_date = st.number_input('Lease Commence Date', value=1997)
             storey_range = st.text_input("Storey Range (Format: 'Value1' TO 'Value2')")
 
             # -----Submit Button for PREDICT RESALE PRICE-----
